@@ -178,7 +178,7 @@ def delete_user():
 @app.get('/recipe')
 def get_recipe():
     recipes = db.session.execute(db.select(Recipe)).scalars().all()
-    return make_response({"data":[r.to_dict() for r in recipes]},200)
+    return make_response([r.to_dict() for r in recipes],200)
 
 @app.post('/recipe')
 @token_auth.login_required()
