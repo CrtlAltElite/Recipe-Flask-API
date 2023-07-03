@@ -1,4 +1,4 @@
-from flask import Flask, g, make_response, request, abort
+from flask import Flask, g, make_response, request, abort, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_cors import CORS
@@ -14,7 +14,7 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS=os.environ.get('SQLALCHEMY_TRACK_MODIFICATIONS')
 
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='./client/dist', static_url_path='')
 app.config.from_object(Config)
 db = SQLAlchemy(app)
 migrate = Migrate(app,db)
@@ -36,6 +36,14 @@ def verify_token(token):
     u = User.check_token(token) if token else None
     g.current_user = u
     return g.current_user or None
+
+@app.route('/')
+def serve():
+    return send_from_directory(app.static_folder, 'index.html')
+
+@app.errorhandler(404)
+def not_found(e):
+    return app.send_static_file('index.html')
 
 
 class User(db.Model):
@@ -137,6 +145,8 @@ class Recipe(db.Model):
             "created_on":self.created_on,
             "author":self.author.first_name + " " + self.author.last_name
         }
+
+
 
 @app.get('/user')
 @basic_auth.login_required()
